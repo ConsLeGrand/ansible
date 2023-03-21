@@ -1,0 +1,58 @@
+---
+- name: installation de mon server  web
+  hosts: nodes
+  remote_user: root
+
+  tasks:
+    - name: installation de apache2
+      apt:
+        name: apache2
+    - name: installation PHP
+      apt:
+        name: php
+
+    - name: ajouter un utilisateur systeme
+      user:
+        name: "{{ user }}"
+        password: !
+        shell: /bin/false
+
+    - name: creer le dossier user
+      file:
+        path: /var/www/{{ domain }}
+        state: directory
+        owner: "{{ user }}"
+        group: "{{ user }}"
+        mode: 0755
+
+    - name: copier le fichier phpinfo en locale vers les nodes
+      copy:
+        src: fichiers/index.php
+        dest: /var/www/{{ domain }}
+        owner: "{{ user }}"
+        group: "{{ user }}"
+        mode: 0644
+
+    - name: copier le fichier virtualhost pour notre site virtual
+      template:
+        src: templates/virtualhost.conf.j2
+        dest: /etc/apache2/sites-available/virtualhost.conf
+
+
+    - name: supprimer le site virtual par defaut
+      command: a2dissite 000-default.conf
+      args:
+        removes: /etc/apache2/sites-available/000-default.conf
+      notify: relancer apache
+
+    - name: ajouter le virtualhost.conf
+      command: a2ensite virtualhost.conf
+      args:
+        creates: /etc/apache2/sites-available/virtualhost.conf
+      notify: relancer apache
+
+  handlers:
+    - name: relancer apache
+      service:
+        name: apache2
+        state: reloaded
