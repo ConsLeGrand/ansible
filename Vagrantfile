@@ -12,7 +12,7 @@ Vagrant.configure("2") do |config|
   
   config.vm.define "ans-node1" do |node1|
     node1.vm.hostname = "ans-node1"
-    node1.vm.network "private_network", ip: "192.168.33.11"
+    node1.vm.network "private_network", ip: "192.168.33.101"
   end
   
   config.vm.define "ans-node2" do |node2|
